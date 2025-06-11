@@ -43,3 +43,12 @@ df <- data_files |>
     download_url,
     file.path("data", name)
   ))
+
+library(dataverse)
+Sys.setenv("DATAVERSE_SERVER" = "dataverse.harvard.edu")
+data_files <- get_dataset(dataset = "https://doi.org/10.7910/DVN/1M5KHX") |> 
+  pluck("files") |> 
+  filter(label == "chats.db") |> 
+  mutate(download_url = map_chr(id, \(id) get_file(id, return_url = TRUE)))
+
+curl::curl_download(data_files$download_url, file.path("data", data_files$filename))
