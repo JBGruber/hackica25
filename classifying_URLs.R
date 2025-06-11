@@ -96,7 +96,7 @@ news_type_counts <- url_data %>%
 news_type_counts  # view the raw counts
 
 # 6. Bar chart: share of each link type across all URLs
-url_data %>%
+bar_chart <- url_data %>%
   count(news_type) %>%
   mutate(pct = n / sum(n) * 100) %>%
   ggplot(aes(x = fct_reorder(news_type, pct), y = pct, fill = news_type)) +
@@ -107,9 +107,11 @@ url_data %>%
     y = "Percent of Links",
     title = "Share of Links by News Type"
   )
+ggsave("figures/bar_chart.png", plot = bar_chart, width = 6, height = 4, dpi = 300)
+
 
 # 7. Time series: daily counts of each link type
-url_data %>%
+time_series <- url_data %>%
   mutate(date = as_date(date)) %>%    # convert string to Date
   count(date, news_type) %>%
   ggplot(aes(x = date, y = n, color = news_type)) +
@@ -119,6 +121,8 @@ url_data %>%
     y = "Number of Links",
     title = "Daily Link Shares by News Type"
   )
+time_series
+ggsave("figures/time_series.png", plot = time_series, width = 6, height = 4, dpi = 300)
 
 # 8. Channel-level profile: proportion of each news_type per channel
 channel_profile <- url_data %>%
@@ -157,7 +161,7 @@ heat_df <- url_data2 %>%
   )
 
 # 3. Plot heatmap of proportions
-ggplot(heat_df, aes(x = channel_id, y = news_type, fill = prop)) +
+heatmap <- ggplot(heat_df, aes(x = channel_id, y = news_type, fill = prop)) +
   geom_tile(color = "white") +
   scale_fill_viridis_c(labels = scales::percent_format()) +
   labs(
@@ -170,3 +174,6 @@ ggplot(heat_df, aes(x = channel_id, y = news_type, fill = prop)) +
   theme(
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
+heatmap
+
+ggsave("figures/heatmap.png", plot = heatmap, width = 6, height = 4, dpi = 300)
