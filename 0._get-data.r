@@ -1,3 +1,5 @@
+# globus ls --long --format json c3e4dc38-a5e2-47d5-baa2-8b3f5b2a59db:/ > 0.datafiles.json
+
 library(tidyverse)
 data_files <- jsonlite::read_json(("0.datafiles.json")) |> 
   pluck("DATA") |> 
