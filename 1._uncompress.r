@@ -11,7 +11,13 @@ channel_files <- list.files("data", ".db$", full.names = TRUE)
 decompress_channel <- function(x) {
   channel_id <- sub(".*(channel_\\d+)\\.db$", "\\1", x)
   con <- dbConnect(RSQLite::SQLite(), dbname = x)
-  df <- dbReadTable(con, "messages")
+  tryCatch({
+    df <- dbReadTable(con, "messages")
+  }, error = function(e) {
+    message("Caught an error, but continuing: ", channel_id)
+    writeLines(channel_id, "errors.txt")
+    return(NULL)  # Return something to continue
+  })
   for (i in seq_along(df$message)) {
     decompressed <- memDecompress(df$message[[i]], type = "gzip", asChar = TRUE)
     json_list <- fromJSON(decompressed) # We need this step to deal with unicode escape
@@ -21,6 +27,8 @@ decompress_channel <- function(x) {
     #message("Decompressed to: ", filename, " (", i, "/", nrow(df), ")")
   }
 }
+
+
 
 for (file in channel_files) {
   message("Decompressing ", file)
