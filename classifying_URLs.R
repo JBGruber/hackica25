@@ -34,7 +34,14 @@ other_news <- news %>%
 
 
 # === Read and prepare the Telegram messages ===
-msgs <- read.csv('news_classification/messages.csv')  # raw messages file
+msgs2 <- read.csv('news_classification/messages.csv')  # raw messages file
+msgs <- read.csv('news_classification/us_election_chat.csv')  # raw messages file 2
+
+
+msgs <- msgs %>% mutate (message_id = id)
+
+msgs <- bind_rows(msgs, msgs2)
+
 colnames(msgs)  # inspect column names
 
 # Define a regex that captures http(s) URLs
