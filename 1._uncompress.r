@@ -6,4 +6,13 @@ curl::curl_download(
 library(reticulate)
 source_python("1._decompress.py")
 dir.create("data_decompressed", showWarnings = FALSE)
-py$decompress_db("data/channel_1000154686.db", "data_decompressed/channel_1000154686.db")
+
+channel_files <- list.files("data", ".db$", full.names = TRUE)
+for (f in channel_files) {
+  message("decompressing ", f, " (", which(f == channel_files), " of ", length(channel_files), ")")
+  py$decompress_db(
+    f,
+    file.path("data_decompressed", basename(f))
+  )
+}
+
