@@ -24,6 +24,10 @@ social_media_domains <- c(
   "reddit.com", "linkedin.com", "pinterest.com", "discord.gg", "discord.com"
 )
 
+www_domains <- paste0("www.", social_media_domains)
+social_media_domains <- c(social_media_domains, www_domains)
+
+
 # All other news domains (neither high-quality nor extremist, and not social media)
 other_news <- news %>%
   filter(
@@ -34,13 +38,13 @@ other_news <- news %>%
 
 
 # === Read and prepare the Telegram messages ===
-msgs2 <- read.csv('news_classification/messages.csv')  # raw messages file
+# msgs2 <- read.csv('news_classification/messages.csv')  # raw messages file, of a aliexpress coupon channel
 msgs <- read.csv('news_classification/us_election_chat.csv')  # raw messages file 2
 
 
 msgs <- msgs %>% mutate (message_id = id)
 
-msgs <- bind_rows(msgs, msgs2)
+#msgs <- bind_rows(msgs, msgs2)
 
 colnames(msgs)  # inspect column names
 
@@ -66,8 +70,12 @@ url_data <- url_data %>%
 # 4. From each URL, parse out the bare domain (host)
 url_data <- url_data %>%
   mutate(
-    domain = str_extract(urls, "(?<=https?://)[^/]+")  # text after http(s):// up to '/'
+    # Step 1: Extract domain from URL
+    raw_domain = str_extract(urls, "(?<=https?://)[^/]+"),
+    # Step 2: Normalize by removing www., m., etc.
+    domain = str_remove(raw_domain, "^(www\\.|m\\.|mobile\\.)")
   )
+
 
 # 5. Classify each domain into one of our news_type categories
 url_data <- url_data %>%
