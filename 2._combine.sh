@@ -1,14 +1,9 @@
 #!/bin/bash
 
-# Script to process all JSON files in decompressed_json directory and create a single CSV
+# for speed, we wrote this with jq in bash
 
-# Output CSV file
 OUTPUT_FILE="data/telegram_messages_combined.csv"
-
-# Create CSV header
 echo "id,channel_id,date,message" > "$OUTPUT_FILE"
-
-# Process all JSON files in decompressed_json directory
 for json_file in decompressed_json/*.json; do
     if [ -f "$json_file" ]; then
         echo "Processing: $json_file"
@@ -18,4 +13,3 @@ for json_file in decompressed_json/*.json; do
 done
 
 echo "CSV file created: $OUTPUT_FILE"
-
