@@ -1,18 +1,32 @@
-# small script to use the decompress function from the original GitHub
-curl::curl_download(
-  "https://raw.githubusercontent.com/leonardo-blas/usc-tg-24-us-election/refs/heads/main/decompress.py",
-  "1._decompress.py"
-)
-library(reticulate)
-source_python("1._decompress.py")
-dir.create("data_decompressed", showWarnings = FALSE)
+# This files decompress the .db into individual json files
+
+library(DBI)
+library(RSQLite)
+library(R.utils)
+library(jsonlite)
 
 channel_files <- list.files("data", ".db$", full.names = TRUE)
-for (f in channel_files) {
-  message("decompressing ", f, " (", which(f == channel_files), " of ", length(channel_files), ")")
-  py$decompress_db(
-    f,
-    file.path("data_decompressed", basename(f))
-  )
+
+# This is the input format: "data/channel_1009639194.db"
+decompress_channel <- function(x){
+  channel_id <- sub(".*(channel_\\d+)\\.db$", "\\1", x)
+  con <- dbConnect(RSQLite::SQLite(), dbname = x)
+  df <- dbReadTable(con, "messages")
+  for(i in seq_along(df$message)){
+    decompressed <- memDecompress(df$message[[i]], type = "gzip", asChar = TRUE)
+    json_list <- fromJSON(decompressed) # We need this step to deal with unicode escape
+    message_id <- json_list$id
+    filename <- paste0("decompressed_json/", channel_id, "_", message_id, ".json")
+    writeLines(toJSON(json_list), filename)
+    cat("Decompressed to: ", filename)
+  }
 }
+
+for(file in channel_files){
+  decompress_channel(file)
+}
+
+
+
+
 
