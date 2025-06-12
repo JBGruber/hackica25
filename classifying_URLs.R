@@ -7,6 +7,8 @@ library(forcats)    # for factor reordering (fct_* functions)
 
 # Read in the CSV of news-domain classifications (with MBFC fact-check scores)
 news <- read.csv('news_classification/dt_pc1-no-newsguard_weights.csv')
+load("channel_names/channel_names.RData")
+
 
 # Split domains into "extremist" and "high_quality" based on MBFC factuality score thresholds
 extremist <- news %>%
@@ -44,6 +46,7 @@ msgs <- read.csv('news_classification/us_election_chat.csv')  # raw messages fil
 
 msgs <- msgs %>% mutate (message_id = id)
 
+
 #msgs <- bind_rows(msgs, msgs2)
 
 colnames(msgs)  # inspect column names
@@ -63,9 +66,31 @@ url_data <- msgs %>%
 # 3. Extract the numeric channel ID from the peer_id string
 url_data <- url_data %>%
   mutate(
-    channel_id = as.integer(str_extract(peer_id, "\\d+"))  # grab digits
+    channel_id = str_extract(peer_id, "\\d+")  # grab digits
   ) %>%
   select(-peer_id)  # drop the original peer_id column now that we have channel_id
+
+
+channel_names <- channel_names %>% mutate(channel_id = str_extract(channel_id, "\\d+"))
+#
+# any(duplicated(channel_names$channel_id))
+# channel_names %>%
+#   group_by(channel_id) %>%
+#   mutate(duplicate_count = n()) %>%
+#   ungroup() %>% View()
+
+
+channel_names_latest <- channel_names %>%
+  group_by(channel_id) %>%
+  filter(timestamp == max(timestamp, na.rm = TRUE)) %>%
+  ungroup()
+
+channel_names_latest <- channel_names_latest %>% select("channel_id", "token") %>% rename(channel_name = token)
+
+
+
+url_data <- left_join(url_data, channel_names_latest, by= "channel_id")
+
 
 # 4. From each URL, parse out the bare domain (host)
 url_data <- url_data %>%
@@ -87,6 +112,11 @@ url_data <- url_data %>%
       domain %in% social_media_domains ~ "social_media",
       TRUE                             ~ "none"        # no classification
     )
+  )
+
+url_data <- url_data %>%
+  mutate(
+
   )
 
 # === Summary counts and visualizations ===
