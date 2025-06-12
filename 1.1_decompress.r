@@ -11,14 +11,22 @@ library(furrr)
 # This is the input format: "data/channel_1009639194.db"
 decompress_channel <- function(f, out_dir = "data_decompressed") {
   channel_id <- sub(".*(channel_\\d+)\\.db$", "\\1", f)
-  con <- dbConnect(RSQLite::SQLite(), dbname = f)
+
+  # don't decompress again if it exist already
+  if (!isTRUE(channel_id %in% try(readLines("done.txt"), silent = TRUE))) {
+    out <- rio::import(file.path(out_dir, paste0(channel_id, ".csv")))
+    return(out)
+  }
+
   tryCatch({
+    con <- dbConnect(RSQLite::SQLite(), dbname = f)
     df <- dbReadTable(con, "messages")
     out <- map(df$message, decompress_message) |>
       bind_rows()
+    write(channel_id, "done.txt", append = TRUE)
   }, error = function(e) {
     message("Caught an error, but continuing: ", channel_id)
-    writeLines(channel_id, "errors.txt")
+    write(channel_id, "errors.txt", append = TRUE)
     return(NULL)  # Return something to continue
   })
   dbDisconnect(con)
