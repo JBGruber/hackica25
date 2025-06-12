@@ -3,3 +3,4 @@ data/
 data_decompressed/
 .Rproj.user
 decompressed_json/
+.gitignore
