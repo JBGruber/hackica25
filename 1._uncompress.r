@@ -18,6 +18,7 @@ decompress_channel <- function(x) {
     writeLines(channel_id, "errors.txt")
     return(NULL)  # Return something to continue
   })
+  dir,dir.create("decompressed_json/", showWarnings = FALSE)
   for (i in seq_along(df$message)) {
     decompressed <- memDecompress(df$message[[i]], type = "gzip", asChar = TRUE)
     json_list <- fromJSON(decompressed) # We need this step to deal with unicode escape
